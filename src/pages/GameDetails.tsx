@@ -21,6 +21,32 @@ import {
 import { supabase } from '../supabase'; 
 import { Game } from '../types/game';
 
+// Helper per convertire i link di YouTube nel formato embed corretto con suggerimento HD (1080p)
+const getYouTubeEmbedUrl = (url: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  if (match && match[2].length === 11) {
+    const videoId = match[2];
+    // Forziamo il caricamento in HD (hd1080) e rimuoviamo i video correlati alla fine (rel=0)
+    return `https://www.youtube.com/embed/${videoId}?vq=hd1080&rel=0`;
+  }
+  return null;
+};
+
+// Helper per estrarre la copertina ufficiale del video da YouTube per le miniature del carousel
+const getYouTubeThumbnail = (url: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  if (match && match[2].length === 11) {
+    return `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg`;
+  }
+  return null;
+};
+
 const GameDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [game, setGame] = useState<Game | null>(null);
@@ -30,6 +56,9 @@ const GameDetails: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
+
+  // Stato per nascondere il cursore e l'interfaccia nel lightbox dopo inattività
+  const [showCursor, setShowCursor] = useState(true);
 
   // Stati per la gestione dei commenti
   const [comments, setComments] = useState<any[]>([]);
@@ -96,7 +125,7 @@ const GameDetails: React.FC = () => {
         };
         setGame(mappedGame);
 
-        // RIPRISTINATO: Costruiamo la lista dei media unendo video e screenshot per il Carousel [1]
+        // Costruiamo la lista dei media unendo video e screenshot per il Carousel [1]
         const items = [];
         if (mappedGame.videoUrl) {
           items.push({ type: 'video', url: mappedGame.videoUrl });
@@ -159,6 +188,37 @@ const GameDetails: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [fullscreenIndex, mediaItems.length]);
+
+  // Gestione dell'auto-hide del cursore durante la modalità fullscreen
+  useEffect(() => {
+    if (fullscreenIndex === null) {
+      setShowCursor(true);
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const handleMouseMove = () => {
+      setShowCursor(true);
+      clearTimeout(timeoutId);
+      // Nasconde il cursore e l'interfaccia dopo 2 secondi di inattività
+      timeoutId = setTimeout(() => {
+        setShowCursor(false);
+      }, 2000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Avvia il timer al primo ingresso in fullscreen
+    timeoutId = setTimeout(() => {
+      setShowCursor(false);
+    }, 2000);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(timeoutId);
+    };
+  }, [fullscreenIndex]);
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +299,7 @@ const GameDetails: React.FC = () => {
           
           <div className="lg:col-span-8 space-y-16">
             
-            {/* SEZIONE CAROUSEL IN STILE STEAM (Ripristinata!) [1] */}
+            {/* SEZIONE CAROUSEL IN STILE STEAM */}
             {mediaItems.length > 0 && (
               <section className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-3 mb-2">
@@ -251,14 +311,31 @@ const GameDetails: React.FC = () => {
                 <div className="aspect-video rounded-3xl overflow-hidden relative border border-brand-border shadow-2xl bg-black group">
                   <AnimatePresence mode="wait">
                     {activeMedia && activeMedia.type === 'video' ? (
-                      <video 
-                        key={activeMedia.url}
-                        src={activeMedia.url} 
-                        controls 
-                        autoPlay
-                        muted
-                        className="w-full h-full object-contain"
-                      />
+                      (() => {
+                        const embedUrl = getYouTubeEmbedUrl(activeMedia.url);
+                        if (embedUrl) {
+                          return (
+                            <iframe
+                              key={activeMedia.url}
+                              src={embedUrl}
+                              title={`${game.title} Trailer`}
+                              className="w-full h-full border-0 rounded-3xl"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          );
+                        }
+                        return (
+                          <video 
+                            key={activeMedia.url}
+                            src={activeMedia.url} 
+                            controls 
+                            autoPlay
+                            muted
+                            className="w-full h-full object-contain"
+                          />
+                        );
+                      })()
                     ) : (
                       activeMedia && (
                         <motion.img 
@@ -313,7 +390,15 @@ const GameDetails: React.FC = () => {
                           : "border-brand-border opacity-50 hover:opacity-100 hover:border-gray-500"
                       }`}
                     >
-                      <img src={item.type === 'video' ? game.bannerImage : item.url} className="w-full h-full object-cover" alt="Minore" />
+                      <img 
+                        src={
+                          item.type === 'video' 
+                            ? (getYouTubeThumbnail(item.url) || game.bannerImage) 
+                            : item.url
+                        } 
+                        className="w-full h-full object-cover" 
+                        alt="Minore" 
+                      />
                       {item.type === 'video' && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                           <Play className="w-6 h-6 text-brand-azure fill-brand-azure" />
@@ -477,6 +562,7 @@ const GameDetails: React.FC = () => {
                     </div>
                   )}
 
+                  {/* RIPRISTINATO: BLOCCO STATICO "VERIFIED ARCHIVE" ORIGINALE */}
                   <div className="pt-8 border-t border-brand-border">
                     <div className="flex items-center gap-3 mb-4">
                       <ShieldCheck className="w-5 h-5 text-brand-green" />
@@ -486,6 +572,7 @@ const GameDetails: React.FC = () => {
                       ARES Protocol Signature: 0x{id?.slice(0, 8).toUpperCase()}...{id?.slice(-4).toUpperCase()}
                     </p>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -501,24 +588,46 @@ const GameDetails: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setFullscreenIndex(null)}
-            className="fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center cursor-zoom-out p-4 md:p-10 select-none"
+            className={`fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center p-4 md:p-10 select-none transition-all duration-300 ${
+              showCursor ? 'cursor-zoom-out' : 'cursor-none'
+            }`}
           >
+            {/* Pulsante di chiusura (dissolve insieme al cursore) */}
             <button 
               onClick={() => setFullscreenIndex(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-all cursor-pointer"
+              className={`absolute top-6 right-6 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-all duration-300 cursor-pointer z-50 ${
+                showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
             >
               <X className="w-6 h-6" />
             </button>
 
             <div className="relative max-w-6xl w-full aspect-video flex items-center justify-center">
               {mediaItems[fullscreenIndex] && mediaItems[fullscreenIndex].type === 'video' ? (
-                <video 
-                  src={mediaItems[fullscreenIndex].url} 
-                  controls 
-                  autoPlay
-                  className="max-h-[85vh] max-w-full rounded-2xl border border-brand-border shadow-2xl"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                (() => {
+                  const embedUrl = getYouTubeEmbedUrl(mediaItems[fullscreenIndex].url);
+                  if (embedUrl) {
+                    return (
+                      <iframe
+                        src={embedUrl}
+                        title="Fullscreen Trailer"
+                        className="w-full h-full aspect-video border-0 rounded-2xl max-h-[85vh]"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    );
+                  }
+                  return (
+                    <video 
+                      src={mediaItems[fullscreenIndex].url} 
+                      controls 
+                      autoPlay
+                      className="max-h-[85vh] max-w-full rounded-2xl border border-brand-border shadow-2xl"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  );
+                })()
               ) : (
                 mediaItems[fullscreenIndex] && (
                   <img 
@@ -530,21 +639,31 @@ const GameDetails: React.FC = () => {
                 )
               )}
 
+              {/* Pulsante Precedente (dissolve insieme al cursore) */}
               <button 
                 onClick={handleFullscreenPrev}
-                className="absolute left-[-10px] md:left-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all cursor-pointer hover:scale-105"
+                className={`absolute left-[-10px] md:left-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all duration-300 cursor-pointer hover:scale-105 z-50 ${
+                  showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
+
+              {/* Pulsante Successivo (dissolve insieme al cursore) */}
               <button 
                 onClick={handleFullscreenNext}
-                className="absolute right-[-10px] md:right-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all cursor-pointer hover:scale-105"
+                className={`absolute right-[-10px] md:right-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all duration-300 cursor-pointer hover:scale-105 z-50 ${
+                  showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="absolute bottom-6 text-gray-500 font-mono text-sm uppercase tracking-widest">
+            {/* Testo in basso con il conteggio dei media (dissolve insieme al cursore) */}
+            <div className={`absolute bottom-6 text-gray-500 font-mono text-sm uppercase tracking-widest transition-all duration-300 ${
+              showCursor ? 'opacity-100' : 'opacity-0'
+            }`}>
               Media {fullscreenIndex + 1} of {mediaItems.length}
             </div>
           </motion.div>
