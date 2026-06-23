@@ -26,21 +26,39 @@ const Home: React.FC<HomeProps> = ({ searchQuery }) => {
       if (error) {
         console.error("Errore nel recupero dei giochi:", error);
       } else if (data) {
-        const mappedGames: Game[] = data.map(dbGame => ({
-          id: dbGame.id.toString(),
-          title: dbGame.title || '',
-          description: dbGame.description || '',
-          developer: dbGame.developer || '',
-          pearcryptLink: dbGame.pearcrypt_url || '',
-          bannerImage: dbGame.banner_url || '',
-          videoUrl: dbGame.video_url || '',
-          steamScreenshots: dbGame.screenshots || [],
-          isUpcoming: dbGame.is_upcoming || false, 
-          tags: ['New'],
-          genres: dbGame.genres || [], // Fix generi
-          platforms: ['windows'],
-          releaseDate: dbGame.release_date || dbGame.created_at || new Date().toLocaleDateString(),
-        }));
+        // Recupera la lingua attiva nel browser dell'utente (di default 'en')
+        const userLang = localStorage.getItem('ares_lang') || 'en';
+
+        const mappedGames: Game[] = data.map(dbGame => {
+          // Seleziona dinamicamente il titolo tradotto se presente in tabella, altrimenti usa l'originale
+          const title = 
+            (userLang === 'it' && (dbGame as any).title_it) ? (dbGame as any).title_it : 
+            (userLang === 'es' && (dbGame as any).title_es) ? (dbGame as any).title_es : 
+            dbGame.title;
+
+          // Seleziona dinamicamente la descrizione tradotta se presente in tabella, altrimenti usa l'originale
+          const description = 
+            (userLang === 'it' && (dbGame as any).description_it) ? (dbGame as any).description_it : 
+            (userLang === 'es' && (dbGame as any).description_es) ? (dbGame as any).description_es : 
+            dbGame.description;
+
+          return {
+            id: dbGame.id.toString(),
+            title: title || '',
+            description: description || '',
+            developer: dbGame.developer || '',
+            pearcryptLink: dbGame.pearcrypt_url || '',
+            bannerImage: dbGame.banner_url || '',
+            videoUrl: dbGame.video_url || '',
+            steamScreenshots: dbGame.screenshots || [],
+            isUpcoming: dbGame.is_upcoming || false, 
+            tags: ['New'],
+            genres: dbGame.genres || [], 
+            platforms: ['windows'],
+            releaseDate: dbGame.release_date || dbGame.created_at || new Date().toLocaleDateString(),
+          };
+        });
+        
         setGames(mappedGames);
       }
       setLoading(false);
@@ -102,7 +120,6 @@ const Home: React.FC<HomeProps> = ({ searchQuery }) => {
 
       {displayedArchivedGames.length > 0 ? (
         <>
-          {/* Corretto Grid in grid qui sotto! [1] */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayedArchivedGames.map(game => (
               <GameCard key={game.id} game={game} />

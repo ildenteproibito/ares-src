@@ -8,7 +8,7 @@ const emptyGame: Partial<Game> = {
   title: '',
   description: '',
   developer: '',
-  pearcryptLink: '',
+  buzzheavierLink: '', // Migrato a Buzzheavier
   bannerImage: '',
   steamScreenshots: [],
   videoUrl: '',
@@ -34,13 +34,11 @@ const AdminDashboard = () => {
 
   // Controllo della sessione all'avvio
   useEffect(() => {
-    // 1. Controlla se c'è già una sessione attiva
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchGames();
     });
 
-    // 2. Ascolta i cambiamenti di stato (es. login o logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -48,7 +46,7 @@ const AdminDashboard = () => {
       }
     );
 
-    return () => subscription.unsubscribe(); // Pulizia per evitare memory leak
+    return () => subscription.unsubscribe();
   }, []);
 
   // Login con Supabase Auth
@@ -62,16 +60,12 @@ const AdminDashboard = () => {
 
     if (error) {
       alert('Credenziali non valide: ' + error.message);
-    } else {
-      // L'useTrack qui sopra intercetterà automaticamente il successo del login
-      // aggiornando lo stato e chiamando fetchGames().
     }
   };
 
   // Logout tramite Supabase
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // L'useEffect effettuerà il logout automaticamente nello stato.
   };
 
   const fetchGames = async () => {
@@ -88,7 +82,7 @@ const AdminDashboard = () => {
         title: dbGame.title || '',
         description: dbGame.description || '',
         developer: dbGame.developer || '',
-        pearcryptLink: dbGame.pearcrypt_url || '',
+        buzzheavierLink: dbGame.pearcrypt_url || '', // Mappato su pearcrypt_url nel DB per retrocompatibilità
         bannerImage: dbGame.banner_url || '',
         videoUrl: dbGame.video_url || '',
         steamScreenshots: dbGame.screenshots || [],
@@ -199,7 +193,7 @@ const AdminDashboard = () => {
       title: activeGame.title || 'Untitled Game',
       description: activeGame.description || '',
       developer: activeGame.developer || '',
-      pearcrypt_url: activeGame.pearcryptLink || '',
+      pearcrypt_url: activeGame.buzzheavierLink || '', // Inserisce nella colonna originaria di Supabase
       banner_url: activeGame.bannerImage || '',
       video_url: activeGame.videoUrl || '',
       screenshots: activeGame.steamScreenshots || [],
@@ -229,9 +223,6 @@ const AdminDashboard = () => {
         alert("Errore durante il salvataggio! Controlla la console.");
       } else {
         alert("Gioco aggiunto con successo!");
-        if (data && data.length > 0) {
-          // Invio notifica Discord opzionale
-        }
       }
     }
 
@@ -288,7 +279,6 @@ const AdminDashboard = () => {
     setActiveGame({ ...activeGame, steamScreenshots: filtered });
   };
 
-  // Se non c'è una sessione attiva, mostra il Login
   if (!session) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4">
@@ -326,7 +316,6 @@ const AdminDashboard = () => {
     );
   }
 
-  // Se c'è una sessione attiva, mostra la Dashboard
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="flex items-center justify-between mb-12">
@@ -414,13 +403,31 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              <input 
-                placeholder="Pearcrypt Link (URL)"
-                className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm"
-                value={activeGame.pearcryptLink || ''}
-                onChange={e => setActiveGame({...activeGame, pearcryptLink: e.target.value})}
-                required={!activeGame.isUpcoming} 
-              />
+              {/* Sezione Aggiornata per Buzzheavier */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                  Game Link (Buzzheavier)
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    placeholder="Buzzheavier Link (URL)"
+                    className="flex-1 bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-azure"
+                    value={activeGame.buzzheavierLink || ''}
+                    onChange={e => setActiveGame({...activeGame, buzzheavierLink: e.target.value})}
+                    required={!activeGame.isUpcoming} 
+                  />
+                  <a
+                    href="https://buzzheavier.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all text-center"
+                    title="Apri Buzzheavier in una nuova scheda per l'upload"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    Upload
+                  </a>
+                </div>
+              </div>
 
               <div className="space-y-2 pt-2 border-t border-brand-border/40">
                 <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block pl-1">Store Links (Optional)</span>

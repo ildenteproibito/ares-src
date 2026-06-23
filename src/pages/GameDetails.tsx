@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import { 
@@ -59,6 +59,7 @@ const GameDetails: React.FC = () => {
 
   // Stato per nascondere il cursore e l'interfaccia nel lightbox dopo inattività
   const [showCursor, setShowCursor] = useState(true);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Stati per la gestione dei commenti
   const [comments, setComments] = useState<any[]>([]);
@@ -125,7 +126,7 @@ const GameDetails: React.FC = () => {
         };
         setGame(mappedGame);
 
-        // Costruiamo la lista dei media unendo video e screenshot per il Carousel [1]
+        // Costruiamo la lista dei media unendo video e screenshot per il Carousel
         const items = [];
         if (mappedGame.videoUrl) {
           items.push({ type: 'video', url: mappedGame.videoUrl });
@@ -135,7 +136,6 @@ const GameDetails: React.FC = () => {
             items.push({ type: 'image', url: imgUrl });
           });
         }
-        // Se non c'è nulla, usiamo il banner come immagine di fallback
         if (items.length === 0) {
           items.push({ type: 'image', url: mappedGame.bannerImage });
         }
@@ -189,43 +189,44 @@ const GameDetails: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [fullscreenIndex, mediaItems.length]);
 
-  // Gestione dell'auto-hide del cursore durante la modalità fullscreen
+  // Gestore unificato del movimento del mouse (Interaction Sensor)
+  const handleMouseMove = () => {
+    setShowCursor(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    // Nasconde il cursore e l'interfaccia dopo 2 secondi di inattività totale
+    timeoutRef.current = setTimeout(() => {
+      setShowCursor(false);
+    }, 2000);
+  };
+
   useEffect(() => {
     if (fullscreenIndex === null) {
       setShowCursor(true);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       return;
     }
-
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const handleMouseMove = () => {
-      setShowCursor(true);
-      clearTimeout(timeoutId);
-      // Nasconde il cursore e l'interfaccia dopo 2 secondi di inattività
-      timeoutId = setTimeout(() => {
-        setShowCursor(false);
-      }, 2000);
-    };
 
     window.addEventListener('mousemove', handleMouseMove);
 
     // Avvia il timer al primo ingresso in fullscreen
-    timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setShowCursor(false);
     }, 2000);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [fullscreenIndex]);
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !currentUser || !id) return;
-
     setSubmittingComment(true);
-
     const { error } = await supabase
       .from('comments')
       .insert([
@@ -236,7 +237,6 @@ const GameDetails: React.FC = () => {
           comment_text: newComment.trim()
         }
       ]);
-
     if (error) {
       console.error("Errore durante l'invio del commento:", error);
       alert("Errore nell'invio del commento. Riprova!");
@@ -269,11 +269,10 @@ const GameDetails: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-20">
       
-      {/* BANNER DI SFONDO GIGANTE IN CHIARO */}
+      {/* BANNER DI SFONDO */}
       <div className="theme-preserve-contrast relative h-[65vh] min-h-[500px] border-b border-brand-border/60 overflow-hidden">
         <img src={game.bannerImage} className="w-full h-full object-cover animate-fade-in" alt="" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/20 to-transparent" />
-        
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-16 z-10">
           <div className="container mx-auto">
             <Link to="/" className="inline-flex items-center gap-2 text-brand-azure font-bold mb-8 hover:translate-x-[-4px] transition-transform drop-shadow-lg">
@@ -296,18 +295,15 @@ const GameDetails: React.FC = () => {
 
       <div className="container mx-auto px-4 mt-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
           <div className="lg:col-span-8 space-y-16">
             
-            {/* SEZIONE CAROUSEL IN STILE STEAM */}
+            {/* CAROUSEL */}
             {mediaItems.length > 0 && (
               <section className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-3 mb-2">
                   <Layers className="w-6 h-6 text-brand-azure" />
                   <h2 className="text-2xl font-black text-white uppercase tracking-widest">Media Gallery</h2>
                 </div>
-
-                {/* Finestra Principale del Carousel */}
                 <div className="aspect-video rounded-3xl overflow-hidden relative border border-brand-border shadow-2xl bg-black group">
                   <AnimatePresence mode="wait">
                     {activeMedia && activeMedia.type === 'video' ? (
@@ -351,54 +347,23 @@ const GameDetails: React.FC = () => {
                       )
                     )}
                   </AnimatePresence>
-
-                  {/* Frecce direzionali visibili al passaggio del mouse */}
-                  <button 
-                    onClick={handlePrevMedia}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-brand-azure p-3 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 hover:scale-105"
-                  >
+                  <button onClick={handlePrevMedia} className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-brand-azure p-3 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 hover:scale-105">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <button 
-                    onClick={handleNextMedia}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-brand-azure p-3 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 hover:scale-105"
-                  >
+                  <button onClick={handleNextMedia} className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-brand-azure p-3 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 hover:scale-105">
                     <ChevronRight className="w-5 h-5" />
                   </button>
-
-                  {/* Pulsante Fullscreen per le immagini */}
-                  {activeMedia && activeMedia.type === 'image' && (
-                    <button 
-                      onClick={() => setFullscreenIndex(activeIndex)}
-                      className="absolute bottom-4 right-4 bg-black/60 hover:bg-brand-azure p-2.5 rounded-xl text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10 hover:scale-105"
-                      title="Apri a schermo intero"
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                    </button>
-                  )}
                 </div>
-
-                {/* Riga delle Miniature (Thumbnails) scorrevoli in basso */}
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-brand-border scrollbar-track-transparent">
                   {mediaItems.map((item, index) => (
                     <div 
                       key={index}
                       onClick={() => setActiveIndex(index)}
                       className={`w-28 aspect-video rounded-lg overflow-hidden border-2 cursor-pointer shrink-0 transition-all relative ${
-                        activeIndex === index 
-                          ? "border-brand-azure scale-95 opacity-100" 
-                          : "border-brand-border opacity-50 hover:opacity-100 hover:border-gray-500"
+                        activeIndex === index ? "border-brand-azure scale-95 opacity-100" : "border-brand-border opacity-50 hover:opacity-100 hover:border-gray-500"
                       }`}
                     >
-                      <img 
-                        src={
-                          item.type === 'video' 
-                            ? (getYouTubeThumbnail(item.url) || game.bannerImage) 
-                            : item.url
-                        } 
-                        className="w-full h-full object-cover" 
-                        alt="Minore" 
-                      />
+                      <img src={item.type === 'video' ? (getYouTubeThumbnail(item.url) || game.bannerImage) : item.url} className="w-full h-full object-cover" alt="Thumb" />
                       {item.type === 'video' && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                           <Play className="w-6 h-6 text-brand-azure fill-brand-azure" />
@@ -420,19 +385,18 @@ const GameDetails: React.FC = () => {
               </p>
             </section>
 
-            {/* SEZIONE COMMENTI UTENTI IN FONDO */}
+            {/* COMMENTI */}
             <section className="pt-12 border-t border-brand-border">
               <h3 className="text-2xl font-black text-white mb-8 uppercase tracking-widest flex items-center gap-3">
                 <MessageSquare className="w-6 h-6 text-brand-azure" />
                 Discussion & Reports ({comments.length})
               </h3>
-
               {currentUser ? (
                 <form onSubmit={handleAddComment} className="flex gap-4 mb-10 bg-brand-card p-6 rounded-2xl border border-brand-border">
                   <img src={currentUser.avatar} alt="Avatar" className="w-10 h-10 rounded-full border border-brand-azure object-cover shrink-0" />
                   <div className="flex-1 space-y-3">
                     <textarea 
-                      placeholder="Scrivi un commento, fai una domanda o segnala un link offline..."
+                      placeholder="Scrivi un commento o segnala un problema..."
                       required
                       rows={3}
                       className="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-azure resize-none"
@@ -440,11 +404,7 @@ const GameDetails: React.FC = () => {
                       onChange={e => setNewComment(e.target.value)}
                     />
                     <div className="flex justify-end">
-                      <button 
-                        type="submit"
-                        disabled={submittingComment || !newComment.trim()}
-                        className="px-5 py-2.5 bg-brand-azure hover:brightness-110 text-white font-bold rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 transition-all disabled:opacity-50"
-                      >
+                      <button type="submit" disabled={submittingComment || !newComment.trim()} className="px-5 py-2.5 bg-brand-azure hover:brightness-110 text-white font-bold rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 transition-all disabled:opacity-50">
                         <Send className="w-3.5 h-3.5" />
                         {submittingComment ? 'Sending...' : 'Send Comment'}
                       </button>
@@ -453,31 +413,22 @@ const GameDetails: React.FC = () => {
                 </form>
               ) : (
                 <div className="text-center py-6 bg-brand-card/50 rounded-2xl border border-dashed border-brand-border mb-10">
-                  <p className="text-gray-400 text-sm mb-3">Connettiti con Discord per poter commentare o segnalare problemi.</p>
-                  <span className="text-xs text-brand-azure font-black uppercase tracking-widest">Usa il tasto "CONNECT" in alto a destra</span>
+                  <p className="text-gray-400 text-sm mb-3">Connettiti con Discord per commentare.</p>
                 </div>
               )}
-
-              {/* Lista dei commenti esistenti */}
               <div className="space-y-4">
-                {comments.length > 0 ? (
-                  comments.map(comment => (
-                    <div key={comment.id} className="bg-brand-card/30 p-5 rounded-2xl border border-brand-border/60 flex gap-4">
-                      <img src={comment.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png"} alt="Avatar" className="w-10 h-10 rounded-full object-cover shrink-0" />
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-sm font-black text-white">{comment.username}</span>
-                          <span className="text-[10px] text-gray-500 font-bold uppercase">
-                            {new Date(comment.created_at).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-300 leading-relaxed break-all whitespace-pre-wrap">{comment.comment_text}</p>
+                {comments.map(comment => (
+                  <div key={comment.id} className="bg-brand-card/30 p-5 rounded-2xl border border-brand-border/60 flex gap-4">
+                    <img src={comment.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png"} alt="Avatar" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-sm font-black text-white">{comment.username}</span>
+                        <span className="text-[10px] text-gray-500 font-bold uppercase">{new Date(comment.created_at).toLocaleString('it-IT')}</span>
                       </div>
+                      <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{comment.comment_text}</p>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-sm italic">Nessun commento presente per questo gioco. Sii il primo a scriverne uno!</p>
-                )}
+                  </div>
+                ))}
               </div>
             </section>
           </div>
@@ -485,94 +436,35 @@ const GameDetails: React.FC = () => {
           <div className="lg:col-span-4">
             <div className="sticky top-28 space-y-8">
               <div className="bg-brand-card border border-brand-border rounded-[2.5rem] p-10 shadow-2xl">
-                
                 {game.isUpcoming ? (
-                  <button 
-                    disabled
-                    className="w-full py-6 bg-brand-border text-gray-500 font-black rounded-2xl cursor-not-allowed flex items-center justify-center gap-3 text-lg border border-dashed border-gray-600"
-                  >
+                  <button disabled className="w-full py-6 bg-brand-border text-gray-500 font-black rounded-2xl flex items-center justify-center gap-3 text-lg border border-dashed border-gray-600">
                     <Clock className="w-6 h-6" />
                     COMING SOON
                   </button>
                 ) : (
-                  <a 
-                    href={game.pearcryptLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full py-6 bg-brand-azure hover:bg-brand-azure/90 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-brand-azure/20 group text-lg"
-                  >
+                  <a href={game.pearcryptLink} target="_blank" rel="noopener noreferrer" className="w-full py-6 bg-brand-azure hover:bg-brand-azure/90 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-brand-azure/20 group text-lg">
                     <Download className="w-6 h-6 group-hover:translate-y-1 transition-transform" />
                     DOWNLOAD NOW
                   </a>
                 )}
                 
                 <div className="mt-12 space-y-8">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> {game.isUpcoming ? 'Expected' : 'Released'}
-                    </span>
+                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
+                    <span className="text-gray-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> {game.isUpcoming ? 'Expected' : 'Released'}</span>
                     <span className="text-white font-black">{game.releaseDate}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                      <Code2 className="w-4 h-4" /> Developer
-                    </span>
+                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
+                    <span className="text-gray-500 flex items-center gap-2"><Code2 className="w-4 h-4" /> Developer</span>
                     <span className="text-white font-black">{game.developer}</span>
                   </div>
 
-                  {/* SEZIONE LINK COMMERCIALI UFFICIALI (Buy Retail) */}
-                  {(game.pearcryptLink || game.videoUrl) && (game.pearcryptLink !== '' || game.videoUrl !== '') && (
-                    <div className="pt-8 border-t border-brand-border space-y-3">
-                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">
-                        Support Developers (Buy Retail)
-                      </span>
-                      
-                      {game.steamUrl && (
-                        <a 
-                          href={game.steamUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-full py-3 bg-[#1b2838] hover:bg-[#2a475e] text-[#66c0f4] text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 border border-[#2a475e]/30 uppercase tracking-wider"
-                        >
-                          Buy on Steam
-                        </a>
-                      )}
-
-                      {game.gogUrl && (
-                        <a 
-                          href={game.gogUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-full py-3 bg-[#110d26] hover:bg-[#5c2e91] text-[#bf9cff] text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 border border-[#5c2e91]/30 uppercase tracking-wider"
-                        >
-                          Buy on GOG
-                        </a>
-                      )}
-
-                      {game.epicUrl && (
-                        <a 
-                          href={game.epicUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-full py-3 bg-[#191919] hover:bg-[#2a2a2a] text-[#f5f5f5] text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 border border-gray-800 uppercase tracking-wider"
-                        >
-                          Buy on Epic Store
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* RIPRISTINATO: BLOCCO STATICO "VERIFIED ARCHIVE" ORIGINALE */}
-                  <div className="pt-8 border-t border-brand-border">
-                    <div className="flex items-center gap-3 mb-4">
-                      <ShieldCheck className="w-5 h-5 text-brand-green" />
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Verified Archive</span>
-                    </div>
-                    <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold tracking-tighter">
-                      ARES Protocol Signature: 0x{id?.slice(0, 8).toUpperCase()}...{id?.slice(-4).toUpperCase()}
-                    </p>
+                  {/* LINK COMMERCIALI */}
+                  <div className="pt-8 border-t border-brand-border space-y-3">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Support Developers</span>
+                    {game.steamUrl && <a href={game.steamUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-[#1b2838] hover:bg-[#2a475e] text-[#66c0f4] text-xs font-black rounded-xl transition-all flex items-center justify-center uppercase tracking-wider">Buy on Steam</a>}
+                    {game.gogUrl && <a href={game.gogUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-[#110d26] hover:bg-[#5c2e91] text-[#bf9cff] text-xs font-black rounded-xl transition-all flex items-center justify-center uppercase tracking-wider">Buy on GOG</a>}
+                    {game.epicUrl && <a href={game.epicUrl} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-[#191919] hover:bg-[#2a2a2a] text-[#f5f5f5] text-xs font-black rounded-xl transition-all flex items-center justify-center uppercase tracking-wider">Buy on Epic Store</a>}
                   </div>
-
                 </div>
               </div>
             </div>
@@ -580,79 +472,84 @@ const GameDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* LIGHTBOX MODAL DI FULLSCREEN IN STILE STEAM */}
+      {/* FULLSCREEN MODAL CON SENSOR OVERLAY */}
       <AnimatePresence>
         {fullscreenIndex !== null && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setFullscreenIndex(null)}
-            className={`fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center p-4 md:p-10 select-none transition-all duration-300 ${
-              showCursor ? 'cursor-zoom-out' : 'cursor-none'
-            }`}
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            onClick={() => setFullscreenIndex(null)} 
+            className="fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center p-4 select-none"
           >
-            {/* Pulsante di chiusura (dissolve insieme al cursore) */}
+            {/* Pulsante di chiusura (sfuma insieme al cursore) */}
             <button 
-              onClick={() => setFullscreenIndex(null)}
-              className={`absolute top-6 right-6 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-full transition-all duration-300 cursor-pointer z-50 ${
+              onClick={() => setFullscreenIndex(null)} 
+              className={`absolute top-6 right-6 text-gray-400 hover:text-white bg-white/5 p-3 rounded-full transition-all duration-300 z-50 ${
                 showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
             >
               <X className="w-6 h-6" />
             </button>
-
+            
             <div className="relative max-w-6xl w-full aspect-video flex items-center justify-center">
-              {mediaItems[fullscreenIndex] && mediaItems[fullscreenIndex].type === 'video' ? (
+              {mediaItems[fullscreenIndex]?.type === 'video' ? (
                 (() => {
-                  const embedUrl = getYouTubeEmbedUrl(mediaItems[fullscreenIndex].url);
-                  if (embedUrl) {
-                    return (
-                      <iframe
-                        src={embedUrl}
-                        title="Fullscreen Trailer"
-                        className="w-full h-full aspect-video border-0 rounded-2xl max-h-[85vh]"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        onClick={(e) => e.stopPropagation()}
+                  const url = getYouTubeEmbedUrl(mediaItems[fullscreenIndex].url);
+                  return url ? (
+                    <div className="relative w-full h-full">
+                      <iframe 
+                        src={url} 
+                        className="w-full h-full rounded-2xl max-h-[85vh] border-0" 
+                        allowFullScreen 
                       />
-                    );
-                  }
-                  return (
-                    <video 
-                      src={mediaItems[fullscreenIndex].url} 
-                      controls 
-                      autoPlay
-                      className="max-h-[85vh] max-w-full rounded-2xl border border-brand-border shadow-2xl"
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                      {/* INTERACTION SENSOR OVERLAY PER YOUTUBE IFRAME */}
+                      <div 
+                        onMouseMove={handleMouseMove}
+                        className={`absolute inset-0 rounded-2xl transition-all duration-300 ${
+                          showCursor 
+                            ? 'pointer-events-none bg-transparent' 
+                            : 'pointer-events-auto bg-transparent cursor-none'
+                        }`}
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <video 
+                        src={mediaItems[fullscreenIndex].url} 
+                        controls 
+                        autoPlay 
+                        className="max-h-[85vh] rounded-2xl" 
+                      />
+                      {/* INTERACTION SENSOR OVERLAY PER VIDEO TAG */}
+                      <div 
+                        onMouseMove={handleMouseMove}
+                        className={`absolute inset-0 rounded-2xl transition-all duration-300 ${
+                          showCursor 
+                            ? 'pointer-events-none bg-transparent' 
+                            : 'pointer-events-auto bg-transparent cursor-none'
+                        }`}
+                      />
+                    </div>
                   );
                 })()
               ) : (
-                mediaItems[fullscreenIndex] && (
-                  <img 
-                    src={mediaItems[fullscreenIndex].url} 
-                    className="max-h-[85vh] max-w-full rounded-2xl border border-brand-border shadow-2xl object-contain"
-                    alt="Fullscreen Media" 
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                )
+                <img src={mediaItems[fullscreenIndex]?.url} className="max-h-[85vh] rounded-2xl object-contain" alt="Fullscreen" />
               )}
-
-              {/* Pulsante Precedente (dissolve insieme al cursore) */}
+              
+              {/* Pulsanti di navigazione (sfumano insieme al cursore) */}
               <button 
-                onClick={handleFullscreenPrev}
-                className={`absolute left-[-10px] md:left-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all duration-300 cursor-pointer hover:scale-105 z-50 ${
+                onClick={handleFullscreenPrev} 
+                className={`absolute left-[-10px] md:left-[-60px] top-1/2 -translate-y-1/2 bg-white/5 p-4 rounded-full text-white transition-all duration-300 z-50 ${
                   showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-
-              {/* Pulsante Successivo (dissolve insieme al cursore) */}
+              
               <button 
-                onClick={handleFullscreenNext}
-                className={`absolute right-[-10px] md:right-[-60px] top-1/2 -translate-y-1/2 bg-white/5 hover:bg-brand-azure p-4 rounded-full text-white transition-all duration-300 cursor-pointer hover:scale-105 z-50 ${
+                onClick={handleFullscreenNext} 
+                className={`absolute right-[-10px] md:right-[-60px] top-1/2 -translate-y-1/2 bg-white/5 p-4 rounded-full text-white transition-all duration-300 z-50 ${
                   showCursor ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
               >
@@ -660,7 +557,7 @@ const GameDetails: React.FC = () => {
               </button>
             </div>
 
-            {/* Testo in basso con il conteggio dei media (dissolve insieme al cursore) */}
+            {/* Testo del conteggio media (sfuma insieme al cursore) */}
             <div className={`absolute bottom-6 text-gray-500 font-mono text-sm uppercase tracking-widest transition-all duration-300 ${
               showCursor ? 'opacity-100' : 'opacity-0'
             }`}>

@@ -2,19 +2,17 @@ export interface Game {
   id: string;
   title: string;
   description: string;
-  pearcryptLink: string;
-  steamScreenshots: string[];
-  bannerImage: string;
-  videoUrl?: string;
-  releaseDate: string;
   developer: string;
-  publisher: string;
+  buzzheavierLink: string; // Aggiornato a Buzzheavier
+  bannerImage: string;
+  steamScreenshots: string[];
+  videoUrl: string;
+  releaseDate: string;
+  isUpcoming: boolean;
+  steamUrl: string;
+  gogUrl: string;
+  epicUrl: string;
   tags: string[];
-  genres?: string[]; // Added optional genres for filtering
-  platforms: ('windows' | 'mac' | 'linux')[];
-}
-
-export interface AdminState {
-  isAuthenticated: boolean;
-  token: string | null;
+  genres: string[];
+  platforms: string[];
 }
