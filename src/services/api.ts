@@ -1,86 +1,133 @@
 import { Game } from '../types/game';
 
-const INITIAL_GAMES: Game[] = [
+export const INITIAL_GAMES: Game[] = [
   {
-    id: 'geometry-dash',
-    title: "Geometry Dash",
-    description: "Jump and fly your way through danger in this rhythm-based action platformer! Prepare for a near impossible challenge in the world of Geometry Dash. Push your skills to the limit as you jump, fly and flip your way through dangerous passages and spiky obstacles.",
-    pearcryptLink: "https://pearcrypt.lol/container/587b3712-9cf0-46f9-99c1-fd5f8bce3000",
-    bannerImage: "https://cdn.akamai.steamstatic.com/steam/apps/322170/library_hero.jpg",
-    steamScreenshots: [
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_05cb182b93131a5faf0516232a7ad27c83f2c0e8.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_5aa7c52b6f29b138712c0e89c7f9f2791ec289a9.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_267a8eff67ed643e4f1d49054da5102a07b7ffae.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_0e841fa6622be28851d8aa9624bb0d727c533029.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_1e5328e6955e4037c4e1dfbe761dbb34f3d293da.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_d542f0b64117d289239b068582b7f94f2764063c.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_f8428bf7ccc0e1412a8d9eee24d5c483df38ab54.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_028ecd756e15877b154a8c9d7ddc784759f18458.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_7a7d8cbd27ed24bbb2cb8dfff13a056e38b0f6c3.1920x1080.jpg?t=1775300400",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/322170/ss_8b81e998c1cf04d55aa4c40d2de8a933257c93e1.1920x1080.jpg?t=1775300400"
+    "id": "26",
+    "title": "The Last of Us Part I",
+    "description": "Revisit the game that set a new bar for single-player narrative storytelling with The Last of Us™ and explore a ravaged and hardened world, where every action has a brutal consequence for Joel and Ellie.\n\nExperience the emotional storytelling and unforgettable characters in The Last of Us™, winner of over 200 Game of the Year awards.\n\nIn a ravaged civilization, where infected and hardened survivors run rampant, Joel, a weary protagonist, is hired to smuggle 14-year-old Ellie out of a military quarantine zone. However, what starts as a small job soon transforms into a brutal cross-country journey.",
+    "developer": "Naughty Dog",
+    "pearcryptLink": "https://buzzheavier.com/h2rd19dujku0",
+    "bannerImage": "https://media.rawg.io/media/games/71d/71df9e759b2246f9769126c98ac997fc.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=CxVyuE2Nn_w",
+    "steamScreenshots": [
+      "https://media.rawg.io/media/games/71d/71df9e759b2246f9769126c98ac997fc.jpg",
+      "https://media.rawg.io/media/screenshots/723/7232dfba2a746be21a0e8548b5333dd7.jpg",
+      "https://media.rawg.io/media/screenshots/eb5/eb5a0522dbb56b8f698ac3fa8b884341.jpg",
+      "https://media.rawg.io/media/screenshots/b0f/b0f8ff8c24bc46ca70a20ee4b83d9569.jpg",
+      "https://media.rawg.io/media/screenshots/276/276688cddf9531e6cbcccc3368dfa25f.jpg",
+      "https://media.rawg.io/media/screenshots/585/585fd40ad660779a79e2853f3cd7a833.jpg",
+      "https://media.rawg.io/media/screenshots/7cb/7cb256eecd9dd0bb54d4524dc2a9b7ee.jpg"
     ],
-    releaseDate: "Dec 22, 2014",
-    developer: "RobTop Games",
-    publisher: "RobTop Games",
-    tags: ["Rhythm", "Platformer", "Difficult", "2D"],
-    genres: ["Action", "Indie"],
-    platforms: ["windows", "mac"]
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2023-03-28"
   },
   {
-    id: 'mouse-pi',
-    title: "Mouse P.I. For Hire",
-    description: "A noir-inspired detective adventure where you play as a mouse private investigator. Solve crimes in a gritty rodent underworld.",
-    pearcryptLink: "https://pearcrypt.lol/container/6426807b-8e73-4585-92fd-9b8acf0be29c",
-    bannerImage: "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/298ff2fc3f6a700d022b8d3ec58047f2b426be03/header.jpg?t=1780271651",
-    steamScreenshots: [
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/1421d042bc447e6cc39ce8d794006dd4e6e9d19a/ss_1421d042bc447e6cc39ce8d794006dd4e6e9d19a.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/2b9d88085cefee83819b2facebb8d918ee340c82/ss_2b9d88085cefee83819b2facebb8d918ee340c82.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/2edeb5f746f960b513a617de3ad6c650830d7cc3/ss_2edeb5f746f960b513a617de3ad6c650830d7cc3.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/a0c2188ff0e0b874783af8657b1e24132a6b2285/ss_a0c2188ff0e0b874783af8657b1e24132a6b2285.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/96e6ce49a812c223251f0bd68817626a576b55a2/ss_96e6ce49a812c223251f0bd68817626a576b55a2.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/b20217214fcb03c7f3052cd8112249ae1b3a5328/ss_b20217214fcb03c7f3052cd8112249ae1b3a5328.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/f5d74224092ac266c628e51bab60267c560146de/ss_f5d74224092ac266c628e51bab60267c560146de.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/068ea0d9c22c5cd6ba590fd07897a29969728d08/ss_068ea0d9c22c5cd6ba590fd07897a29969728d08.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/b7685c4c08ec9fb70b4964e2d32cf6355be1970d/ss_b7685c4c08ec9fb70b4964e2d32cf6355be1970d.1920x1080.jpg?t=1780271651",
-      "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2416450/e116e1200b705747a395c697a6fbf919d2deb92c/ss_e116e1200b705747a395c697a6fbf919d2deb92c.1920x1080.jpg?t=1780271651"
+    "id": "25",
+    "title": "Black Myth: Wukong",
+    "description": "Black Myth: Wukong is an action RPG inspired by Chinese mythology. As the Destined One, you'll embark on a journey filled with challenges and wonders to uncover the truth behind the veil of a legendary legend from the past.",
+    "developer": "Game Science",
+    "pearcryptLink": "https://buzzheavier.com/ns4qphlg61um",
+    "bannerImage": "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=bzyMLoSwYvk",
+    "steamScreenshots": [
+      "https://media.rawg.io/media/games/779/77988e89f7862afeede524420aa251b0.jpg",
+      "https://media.rawg.io/media/screenshots/207/20782c3c3da967ca955dfa0e942d0acc.jpg",
+      "https://media.rawg.io/media/screenshots/749/74924dc8952b98f7a0ca7d77210b4578_cEVEMbe.jpg",
+      "https://media.rawg.io/media/screenshots/245/2450ea407bc2934863020c170717cc9c.jpg",
+      "https://media.rawg.io/media/screenshots/4e0/4e0b5ba1ef94973b14cede218159b82c.jpg",
+      "https://media.rawg.io/media/screenshots/f29/f29eace60587e49e7b6f91875c7fadae.jpg"
     ],
-    releaseDate: "2024",
-    developer: "Unknown Developer",
-    publisher: "Unknown Publisher",
-    tags: ["Detective", "Noir", "Adventure", "Indie"],
-    genres: ["Adventure", "Indie"],
-    platforms: ["windows"]
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2024-08-20"
+  },
+  {
+    "id": "24",
+    "title": "Terraria",
+    "description": "Terraria is a 2D action adventure sandbox game, where players create a character and gather resources in order to gradually craft stronger weapons and armor. Players create randomly generated maps that contain different locations within it, and by gathering specific resources and triggering special events, players will fight one of the many in-game bosses. Created characters can be played on different maps.\r\nThe game introduces hundreds of unique items that can be found across the entirety of the map, some of which may not even be encountered. \r\nTerraria have many different Biomes and areas with distinct visuals, containing resources and enemies unique to this biome. After gathering materials, players can craft furniture, and build settlements and houses, since after completing events or finding specific items NPCs will start to arrive, and will require player’s protection. Terraria can be played on three difficulties and has a large modding community.",
+    "developer": "Re-Logic",
+    "pearcryptLink": "https://buzzheavier.com/ut418qpik4xc",
+    "bannerImage": "https://media.rawg.io/media/games/f46/f466571d536f2e3ea9e815ad17177501.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=w7uOhFTrrq0",
+    "steamScreenshots": [
+      "https://media.rawg.io/media/games/f46/f466571d536f2e3ea9e815ad17177501.jpg",
+      "https://media.rawg.io/media/screenshots/3af/3afd69426804e7162edbe03cd9f8d0f4.jpg",
+      "https://media.rawg.io/media/screenshots/48c/48c7e3e1268467b91b24c7da7c6539df.jpg",
+      "https://media.rawg.io/media/screenshots/84b/84b447d4df99d42ffe479c7feb438171.jpg",
+      "https://media.rawg.io/media/screenshots/de0/de053efd6104719567d23fb0dad58b92.jpg",
+      "https://media.rawg.io/media/screenshots/490/4907be07a7771c8a7f0eb30c3a1fadc0.jpg",
+      "https://media.rawg.io/media/screenshots/485/485ce1d6c733357664be153777097af1.jpg"
+    ],
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2011-05-16"
+  },
+  {
+    "id": "23",
+    "title": "Cuphead",
+    "description": "Hand-drawn 2D platformer in the style of 30s cartoons. 2D Dark Souls as the fans refer to the difficulty of this one. It took developers 6 years to create and polish their magnum opus. Cuphead is a classic run and gun adventure that heavily emphasizes on boss battles.\r\n\r\nPlay as Cuphead or his brother Mugman that signed a deal with the devil and know needs to bring the master souls of its debtors. Players can go through the campaign single-handedly or with a friend using built-in co-op capabilities. \r\n\r\nThe backgrounds, characters and other miscellaneous staff were painstakingly created using the methods from the era it mimics; Every character and every scene were hand-drawn to mimic vintage American cartoons. Each note in the orchestral soundtrack was composed with unparalleled attention to detail. Cuphead is an addictive mix of bone-crushing difficulty, fun and audiovisual feast that instantly makes you crave for more.",
+    "developer": "Studio MDHR",
+    "pearcryptLink": "https://buzzheavier.com/aej5mpwptss2",
+    "bannerImage": "https://media.rawg.io/media/games/226/2262cea0b385db6cf399f4be831603b0.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=NN-9SQXoi50",
+    "steamScreenshots": [
+      "https://media.rawg.io/media/games/226/2262cea0b385db6cf399f4be831603b0.jpg",
+      "https://media.rawg.io/media/screenshots/f07/f07f356b4d50a0035efcb6abf3834e4e.jpg",
+      "https://media.rawg.io/media/screenshots/bf8/bf8dd4951e4dbd0c608881c367a60a24.jpg",
+      "https://media.rawg.io/media/screenshots/344/344d6cb35e3dbc0faba8659a5a78e67a.jpg",
+      "https://media.rawg.io/media/screenshots/ade/ade103b6a1ce035f5e7f25c65b6bbe42.jpg",
+      "https://media.rawg.io/media/screenshots/5c1/5c19e99a6d4a2fcd8037587ff1505b11.jpg",
+      "https://media.rawg.io/media/screenshots/dc5/dc5d251100154f7502b4b8510591cc5d.jpg"
+    ],
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2017-09-29"
+  },
+  {
+    "id": "22",
+    "title": "Alien: Isolation",
+    "description": "Alien: Isolation is an action-survival horror game played from the first-person perspective for a more intense experience. The game is not a sequel to any of Alien games, but it is directly connected to the original 1979 Alien film, so the gameplay includes historical references, and the game itself transfers the unique atmosphere and the old vision of the future. The action is set 15 years after the film events. Young Amanda Ripley accompanied by Nina Taylor and the android Christopher Samuels reaches a distant space station Sevastopol to investigate the case of her mother Ellen Ripley (the protagonist of the 1979 film) disappearance. On the way to the Nostromo’s (Ellen’s spacecraft) flight recorder, Amanda will face plenty of hardships like hostile androids and Aliens because the Sevastopol station is wholly abandoned. Players have to explore the entire station inhabited with Aliens. Due to the crafting system, players can create the necessary gear to prevent contacts with countless enemies.",
+    "developer": " Creative Assembly",
+    "pearcryptLink": "https://buzzheavier.com/bh5fsjc5r12r",
+    "bannerImage": "https://media.rawg.io/media/games/daa/daaee07fcb40744d90cf8142f94a241f.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=7h0cgmvIrZw",
+    "steamScreenshots": [
+      "https://media.rawg.io/media/games/daa/daaee07fcb40744d90cf8142f94a241f.jpg",
+      "https://media.rawg.io/media/screenshots/df3/df311b578fbaa587c8ba2d768bcf18d7.jpg",
+      "https://media.rawg.io/media/screenshots/b46/b46d5ddcbf7650df4d7eedf1e886bcdb.jpg",
+      "https://media.rawg.io/media/screenshots/37a/37a8f38809062d7e68d32c537e23862d.jpg",
+      "https://media.rawg.io/media/screenshots/89c/89c46fe1576b925f4c00cc9b6620877a.jpg",
+      "https://media.rawg.io/media/screenshots/d06/d0612058778cdf798a747c80a491b55f.jpg",
+      "https://media.rawg.io/media/screenshots/e12/e12d1635f074c536a16bc50a6b3f56cc.jpg"
+    ],
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2014-10-06"
+  },
+  {
+    "id": "20",
+    "title": "Fears to Fathom - Norwood Hitchhike",
+    "description": "Fears to Fathom is an episodic psychological horror game where each episode unveils a short story narrated by the ones who survived.\nYou're browsing the second installment of the Fears to Fathom anthology.\nFears to Fathom : Norwood HitchhikeIn the second episode of Fears to Fathom you play as Holly Gardner, a 19 year old who was driving back home from a gaming convention, as the traffic got horrible she decided to take the long way to avoid the traffic which leads to an unplanned trip to a motel. Little did she know what was going down in the Norwood Valley. She survived as she made the right choices.Key FeaturesAtmospheric environment and photo-realistic graphics.\nVHS film aesthetic.\nReceive texts from NPCs.\nPlayer voice activity.",
+    "developer": "Rayll",
+    "pearcryptLink": "https://buzzheavier.com/96huca7abxui",
+    "bannerImage": "https://ik.imagekit.io/xsc5vax29/wp13762890-fears-to-fathom-wallpapers.jpg",
+    "videoUrl": "https://www.youtube.com/watch?v=GbztYEo4AkY",
+    "steamScreenshots": [],
+    "isUpcoming": false,
+    "tags": ["New"],
+    "genres": [],
+    "platforms": ["windows"],
+    "releaseDate": "2021-12-10"
   }
 ];
-
-const STORAGE_KEY = 'ares_games_database';
-
-export const getGames = (): Game[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_GAMES));
-    return INITIAL_GAMES;
-  }
-  return JSON.parse(stored);
-};
-
-export const getGameById = (id: string): Game | undefined => {
-  const games = getGames();
-  return games.find(g => g.id === id);
-};
-
-export const saveGame = (game: Game) => {
-  const games = getGames();
-  const index = games.findIndex(g => g.id === game.id);
-  if (index >= 0) {
-    games[index] = game;
-  } else {
-    games.push(game);
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-};
-
-export const deleteGame = (id: string) => {
-  const games = getGames().filter(g => g.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-};
